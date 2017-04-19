@@ -43,15 +43,15 @@ public class Encaminador {
 			this.validated = true;
 		}
 		
-    	NetworkInterface network = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
-    	String macAddress;
-    	StringBuilder sb = new StringBuilder();
-    	byte[] mac = network.getHardwareAddress();
-    	for (byte b: mac) {
-    		sb.append(String.format("%02X", b));
-    	}
-    	macAddress = Util.sha1(sb.toString());
-    	this.id = macAddress.getBytes();
+		NetworkInterface network = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
+		String macAddress;
+		StringBuilder sb = new StringBuilder();
+		byte[] mac = network.getHardwareAddress();
+		for (byte b: mac) {
+			sb.append(String.format("%02X", b));
+		}
+		macAddress = Util.sha1(sb.toString());
+		this.id = macAddress.getBytes();
 		
 		int i = 0;
 		while (ip != null && !this.validateID(ip, port, toPeer) && i < Encaminador.TRIES) {
@@ -104,40 +104,40 @@ public class Encaminador {
 	}
 	
 
-    protected int getNumList(byte[] id2) {
-    	byte[] result = Util.xor(this.id, id2);
-    	
-    	for (int i=0, j=result.length * 8 - 1, length = result.length * 8; i < length; i++, j--) {
-    		if (Util.getBit(this.id, j) != Util.getBit(id2, j)) {
-    			return i;
-    		}
-    	}
-    	
-    	return -1;
-    }
-    
-    public boolean checkIfIdExists(byte[] id, String ip, String port, int numPeer) {
-    	System.out.println(Arrays.toString(this.id));
-    	System.out.println(Arrays.toString(id));
-    	if (Arrays.equals(this.id, id)) {
-    		return true;
-    	}
-    	
-    	int numTable = getNumList(id);
-    	System.out.println(numTable);
-    	
-    	PeerData[] list = this.table[numTable];
-    	for (PeerData p: list) {
-    		if (p == null) {
-    			break;
-    		}
-    		
-    		if (Arrays.equals(p.id, id)) {
-    			return true;
-    		}
-    	}
-    	
-    	// Añadimos a la tabla la ID
+	protected int getNumList(byte[] id2) {
+		byte[] result = Util.xor(this.id, id2);
+		
+		for (int i=0, j=result.length * 8 - 1, length = result.length * 8; i < length; i++, j--) {
+			if (Util.getBit(this.id, j) != Util.getBit(id2, j)) {
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	public boolean checkIfIdExists(byte[] id, String ip, String port, int numPeer) {
+		System.out.println(Arrays.toString(this.id));
+		System.out.println(Arrays.toString(id));
+		if (Arrays.equals(this.id, id)) {
+			return true;
+		}
+		
+		int numTable = getNumList(id);
+		System.out.println(numTable);
+		
+		PeerData[] list = this.table[numTable];
+		for (PeerData p: list) {
+			if (p == null) {
+				break;
+			}
+			
+			if (Arrays.equals(p.id, id)) {
+				return true;
+			}
+		}
+		
+		// Añadimos a la tabla la ID
 		// La tabla esta llena y no entran más
 		if (this.tableCount[numTable] >= Encaminador.ALFA) {
 			System.out.println("LLENO");
@@ -150,32 +150,32 @@ public class Encaminador {
 		peer.port = port;
 		peer.numPeer = numPeer;
 		this.table[numTable][this.tableCount[numTable]++] = peer;
-    	return false;
-    }
-    
-    public JSONArray getRouteTableAsJSON() {
-    	JSONArray table = new JSONArray();
+		return false;
+	}
+	
+	public JSONArray getRouteTableAsJSON() {
+		JSONArray table = new JSONArray();
 
-    	for (PeerData[] peerList: this.table) {
-    		if (peerList == null) {
-    			continue;
-    		}
-    		
-    		for (PeerData p: peerList) {
-    			if (p == null) {
-    				break;
-    			}
-    			
-    			JSONObject peer = new JSONObject();
-    			peer.put(PeerData.ID_NAME, Util.byteToString(p.id));
-    			peer.put(PeerData.IP_NAME, p.ip);
-    			peer.put(PeerData.PORT_NAME, p.port);
-    			peer.put(PeerData.NUM_PEER, p.numPeer);
-    			table.put(peer);
-    		}
-    	}
+		for (PeerData[] peerList: this.table) {
+			if (peerList == null) {
+				continue;
+			}
+			
+			for (PeerData p: peerList) {
+				if (p == null) {
+					break;
+				}
+				
+				JSONObject peer = new JSONObject();
+				peer.put(PeerData.ID_NAME, Util.byteToString(p.id));
+				peer.put(PeerData.IP_NAME, p.ip);
+				peer.put(PeerData.PORT_NAME, p.port);
+				peer.put(PeerData.NUM_PEER, p.numPeer);
+				table.put(peer);
+			}
+		}
 
-    	return table;
-    }
+		return table;
+	}
 
 }
