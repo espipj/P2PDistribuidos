@@ -126,7 +126,20 @@ public class Util {
 	}
 	
 	public static String byteToString(byte[] b) {
+		if (b == null) {
+			return null;
+		}
+		
 		return new String(b, StandardCharsets.UTF_8);
+	}
+	
+	public static void prettyPrintByte(byte[] byteArr) {
+		StringBuilder sb = new StringBuilder();
+		
+		for (Byte b: byteArr) {
+			sb.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
+		}
+		System.out.println(sb.toString()); // 10000001
 	}
 	
 	
