@@ -121,8 +121,8 @@ public class Util {
 	public static int getBit(byte[] arr, int bit) {
 		int index = bit / 8;  // Get the index of the array for the byte with this bit
 		int bitPosition = bit % 8;  // Position of this bit in a byte
-
-		return arr[index] >> bitPosition & 1;
+		
+		return arr[index] >> (7-bitPosition) & 1;
 	}
 	
 	public static String byteToString(byte[] b) {
@@ -134,6 +134,10 @@ public class Util {
 	}
 	
 	public static void prettyPrintByte(byte[] byteArr) {
+		if (byteArr == null) {
+			return;
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		
 		for (Byte b: byteArr) {
@@ -142,5 +146,80 @@ public class Util {
 		System.out.println(sb.toString()); // 10000001
 	}
 	
+	public static byte[] addToByte(byte[] byteArr) {
+		boolean oneMore = true;
+		byte[] result = new byte[byteArr.length];
+		StringBuilder sb = new StringBuilder();
+		for (int i=byteArr.length * 8 - 1, j = byteArr.length - 1; i >= 0; i--) {
+			int bit = getBit(byteArr, i);
+			if (oneMore) {
+				if (bit == 1) {
+					sb.append(0);
+				} else {
+					sb.append(1);
+					oneMore = false;
+				}
+			} else {
+				sb.append(bit);
+			}
+			
+			if (sb.length() % 8 == 0) {
+				result[j] = stringToBinaryEval(sb.reverse().toString());
+				//System.out.println(sb.reverse().toString());
+				sb.setLength(0);
+				j--;
+			}
+		}
+		
+		return result;
+	}
+	
+	public static byte[] removeToByte(byte[] byteArr) {
+		boolean oneLess = true;
+		byte[] result = new byte[byteArr.length];
+		StringBuilder sb = new StringBuilder();
+		for (int i=byteArr.length * 8 - 1, j = byteArr.length - 1; i >= 0; i--) {
+			int bit = getBit(byteArr, i);
+			if (oneLess) {
+				if (bit == 1) {
+					sb.append(0);
+					oneLess = false;
+				} else {
+					sb.append(1);
+				}
+			} else {
+				sb.append(bit);
+			}
+			
+			if (sb.length() % 8 == 0) {
+				result[j] = stringToBinaryEval(sb.reverse().toString());
+				//System.out.println(sb.reverse().toString());
+				sb.setLength(0);
+				j--;
+			}
+		}
+		
+		return result;
+	}
+	
+	public static byte stringToBinaryEval(String s) {
+		return (byte) Integer.parseInt(s, 2);
+	}
+	
+	public static byte[] getMaxByte(int length) {
+		byte[] furtherBuilder = new byte[length];
+		for (int i=0; i < length; i++) {
+			furtherBuilder[i] = (byte) 0b11111111;
+		}
+		return furtherBuilder;
+	}
+	
+	public static byte[] getMinByte(int length) {
+		byte[] minBuilder = new byte[length];
+		for (int i=0; i < length; i++) {
+			minBuilder[i] = (byte) 0b00000000;
+		}
+		return minBuilder;
+	}
 	
 }

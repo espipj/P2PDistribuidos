@@ -33,8 +33,8 @@ public class Encaminador {
 	protected static final int ALFA = 10;
 	
 	public Encaminador(String ip, @NotNull String port, int toPeer, String myIp, String myPort, int numPeer) throws SocketException, UnknownHostException {
-		table = new PeerData[Encaminador.NUM_BITS][Encaminador.K];
-		tableCount = new int[Encaminador.NUM_BITS];
+		table = new PeerData[Encaminador.NUM_BITS*2][Encaminador.K];
+		tableCount = new int[Encaminador.NUM_BITS*2];
 		for (int i=0, length = tableCount.length; i < length; i++) {
 			tableCount[i] = 0;
 		}
@@ -121,13 +121,9 @@ public class Encaminador {
 	protected int getNumList(byte[] id2) {
 		byte[] result = Util.xor(this.id, id2);
 		
-		for (int i=0, j=7, length = result.length * 8; i < length; i++, j--) {
-			if (Util.getBit(this.id, j) != Util.getBit(id2, j)) {
+		for (int i=0, length = result.length * 8; i < length; i++) {
+			if (Util.getBit(this.id, i) != Util.getBit(id2, i)) {
 				return i;
-			}
-
-			if (j % 8 == 0) {
-				j += 16;
 			}
 		}
 		
@@ -195,16 +191,12 @@ public class Encaminador {
 	}
 
 	public int compareDistances(byte[] id1, byte [] id2) {		
-		for (int i=0, j=7, length = id1.length * 8; i < length; i++, j--) {
-			if (Util.getBit(id1, j) != Util.getBit(id2, j)) {
-				if (Util.getBit(id2, j) == 1) {
+		for (int i=0, length = id1.length * 8; i < length; i++) {
+			if (Util.getBit(id1, i) != Util.getBit(id2, i)) {
+				if (Util.getBit(id2, i) == 1) {
 					return -1;
 				}
 				return 1;
-			}
-			
-			if (j % 8 == 0) {
-				j += 16;
 			}
 		}
 		
@@ -337,6 +329,15 @@ public class Encaminador {
 		System.out.println("ASKING");
 		System.out.println("INIT: " + peers);
 		for (PeerData peer: peers) {
+			System.out.println("http://"
+							+ peer.ip
+							+ ":"
+							+ peer.port
+							+ "/P2P/checkPeer?toPeer="
+							+ peer.numPeer + "&id="
+							+ Util.byteToString(id)
+							+ "&time="
+							+ time);
 			JSONArray array = new JSONArray(
 					Util.request("http://"
 							+ peer.ip
@@ -355,7 +356,7 @@ public class Encaminador {
 		peers = getClosestNodes(id, Encaminador.K, newPeers);
 		
 		int tries = 1;
-		while(tries < Encaminador.NUM_BITS) {
+		while(tries < Encaminador.NUM_BITS*2) {
 			//System.out.println(peers);
 			time = System.currentTimeMillis();
 			for (PeerData peer: peers) {
@@ -406,6 +407,29 @@ public class Encaminador {
 		receivedRequests.add(Util.byteToString(id) + time);
 		
 		return getClosestNodes(id, Encaminador.K);
+	}
+	
+	public PeerData[] getNeightboursFromID(byte[] id) {
+		PeerData[] peerData = new PeerData[2];
+		byte[] max = Util.getMaxByte(Encaminador.NUM_BITS*2 / 8);
+		byte[] min = Util.getMinByte(Encaminador.NUM_BITS*2 / 8);
+		PeerData upper = null;
+		PeerData lower = null;
+		byte[] newId = null;
+		
+		// TODO Alternative to Bruteforce SHA-1
+		
+		/*do {
+			newId = Util.addToByte(id);
+			peerData[0] = upper;
+		} while((upper = getPeer(newId, System.currentTimeMillis())) == null && !Arrays.equals(newId, max));
+		
+		do {
+			newId = Util.removeToByte(id);
+			peerData[1] = lower;
+		} while((lower = getPeer(newId, System.currentTimeMillis())) == null && !Arrays.equals(newId, min));*/
+		
+		return peerData;
 	}
 
 }
