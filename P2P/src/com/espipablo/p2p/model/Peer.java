@@ -35,8 +35,13 @@ public class Peer {
 		this.numPeer = numPeer;
 		
 		this.fillFilesTable();
+		System.out.println("I'm: ");
+		Util.prettyPrintByte(this.id);
+		/*System.out.println("UPPER");
 		Util.prettyPrintByte(upper.id);
+		System.out.println("LOWER");
 		Util.prettyPrintByte(lower.id);
+		System.out.println(files);*/
 	}
 	
 	public Encaminador getEncaminador() {
@@ -105,6 +110,7 @@ public class Peer {
 			this.upper.port = port;
 			this.upper.numPeer = numPeer;
 		}
+		System.out.println(this.numPeer + "Upper saved: " + numPeer);
 	}
 	
 	public void setUpper(String id, String ip, String port, int numPeer, boolean callback) {
@@ -114,7 +120,7 @@ public class Peer {
 					+ this.upper.ip
 					+ ":"
 					+ this.upper.port
-					+ "/P2P/setUpper?toPeer="
+					+ "/P2P/setLower?toPeer="
 					+ this.upper.numPeer
 					+ "&id="
 					+ Util.byteToString(this.id)
@@ -122,7 +128,7 @@ public class Peer {
 					+ this.ip
 					+ "&port="
 					+ this.port
-					+ "&numPeer"
+					+ "&numPeer="
 					+ this.numPeer);
 		}
 	}
@@ -138,7 +144,7 @@ public class Peer {
 				+ this.upper.ip
 				+ ":"
 				+ this.upper.port
-				+ "/P2P/setUpper?toPeer="
+				+ "/P2P/setLower?toPeer="
 				+ this.upper.numPeer
 				+ "&id="
 				+ Util.byteToString(this.id)
@@ -146,7 +152,7 @@ public class Peer {
 				+ this.ip
 				+ "&port="
 				+ this.port
-				+ "&numPeer"
+				+ "&numPeer="
 				+ this.numPeer);
 	}
 	
@@ -156,6 +162,7 @@ public class Peer {
 			this.lower.ip = ip;
 			this.lower.port = port;
 			this.lower.numPeer = numPeer;
+			System.out.println(this.numPeer + "Lower saved: " + numPeer);
 		}
 	}
 	
@@ -166,7 +173,7 @@ public class Peer {
 					+ this.lower.ip
 					+ ":"
 					+ this.lower.port
-					+ "/P2P/setLower?toPeer="
+					+ "/P2P/setUpper?toPeer="
 					+ this.lower.numPeer
 					+ "&id="
 					+ Util.byteToString(this.id)
@@ -174,7 +181,7 @@ public class Peer {
 					+ this.ip
 					+ "&port="
 					+ this.port
-					+ "&numPeer"
+					+ "&numPeer="
 					+ this.numPeer);
 		}
 	}
@@ -190,7 +197,7 @@ public class Peer {
 				+ this.lower.ip
 				+ ":"
 				+ this.lower.port
-				+ "/P2P/setLower?toPeer="
+				+ "/P2P/setUpper?toPeer="
 				+ this.lower.numPeer
 				+ "&id="
 				+ Util.byteToString(this.id)
@@ -198,28 +205,43 @@ public class Peer {
 				+ this.ip
 				+ "&port="
 				+ this.port
-				+ "&numPeer"
+				+ "&numPeer="
 				+ this.numPeer);
 	}
 	
 	public void putFile(String file) {
 		String key = Util.sha1(file);
 		System.out.println(file);
-		System.out.println(key);
+		Util.prettyPrintByte(key.getBytes());
+		System.out.println("Trying to save: ");
+		System.out.println("I'm: ");
+		Util.prettyPrintByte(this.id);
+		System.out.println("UPPER");
+		Util.prettyPrintByte(upper.id);
+		System.out.println("LOWER");
+		Util.prettyPrintByte(lower.id);
+		System.out.println(files);
 		
 		// 		Instead of looking for upper and lower, first, let's try to send it to the closest node to the id that we have in our routing table
 		// (in case is closer than us). If we are closer then we will go for the upper-lower method
 		PeerData closest = null;
-		if (this.lower.ip != null && this.encaminador.compareClosest(upper.id, this.lower.id, key.getBytes()) < 1) {
-			closest = this.lower;
+		if (this.lower.ip != null && this.upper.ip != null) {
+			if (this.encaminador.compareClosest(this.upper.id, this.lower.id, key.getBytes()) < 1) {
+				closest = this.upper;
+			} else {
+				closest = this.lower;
+			}
 		} else if (this.upper.ip != null) {
 			closest = this.upper;
+		} else if (this.lower.ip != null) {
+			closest = this.lower;
 		}
 		
 		if (closest == null || this.encaminador.compareClosest(this.id, closest.id, key.getBytes()) < 1) {
 			this.files.put(key, file);
 		} else {
 			// We don't care about the result, file is being put by another node
+			System.out.println("I'm: " + this.numPeer + " asking: " + closest.numPeer);
 			Util.request("http://" 
 					+ closest.ip
 					+ ":"
@@ -229,7 +251,6 @@ public class Peer {
 					+ "&file="
 					+ file);
 		}
-		System.out.println(this.files);
 	}
 	
 }

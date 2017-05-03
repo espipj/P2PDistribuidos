@@ -91,6 +91,7 @@ public class Encaminador {
 		int numTable = getNumList(peer.id);
 		this.table[getNumList(peer.id)][this.tableCount[numTable]++] = peer;
 		
+		// Storing new list might cause that nobody can add a new node
 		JSONArray tableJson = jsonObj.getJSONArray("table");
 		for (int i=0, length = tableJson.length(); i < length; i++) {
 			tableEntry = tableJson.getJSONObject(i);
@@ -148,6 +149,10 @@ public class Encaminador {
 			}
 		}
 		
+		if (this.getPeer(id, System.currentTimeMillis()) != null) {
+			return true;
+		}
+		
 		// Añadimos a la tabla la ID
 		// La tabla esta llena y no entran más
 		if (this.tableCount[numTable] >= Encaminador.K) {
@@ -193,7 +198,7 @@ public class Encaminador {
 	public int compareDistances(byte[] id1, byte [] id2) {		
 		for (int i=0, length = id1.length * 8; i < length; i++) {
 			if (Util.getBit(id1, i) != Util.getBit(id2, i)) {
-				if (Util.getBit(id2, i) == 1) {
+				if (Util.getBit(id1, i) == 0) {
 					return -1;
 				}
 				return 1;
@@ -231,6 +236,112 @@ public class Encaminador {
 
 				for (PeerData peer: peerList) {
 					if (peer == null) {
+						continue;
+					}
+
+					/*Util.prettyPrintByte(peer.id);
+					Util.prettyPrintByte(nearest);
+					Util.prettyPrintByte(objective);
+					System.out.println(compareClosest(peer.id, nearest, objective));*/
+					if (compareClosest(peer.id, nearest, objective) <= 0 && nodes.indexOf(peer) == -1) {
+						chosenPeer = peer;
+						nearest = peer.id;
+					}
+				}
+			}
+			
+			if (chosenPeer != null && nodes.indexOf(chosenPeer) == -1) {
+				nodes.add(chosenPeer);
+				added++;
+				addedThisRound = true;
+			}
+		}
+		
+		return nodes;
+	}
+	
+	protected LinkedList<PeerData> getUpperClosestNodes(byte[] objective, int limit) {
+		LinkedList<PeerData> nodes = new LinkedList<>();
+		int added = 0;
+		// This flag will be false if no more nodes are available (We didn't reach ALFA)
+		boolean addedThisRound = true;
+		
+		byte[] furtherBuilder = new byte[objective.length];
+		for (int i=0, length = objective.length; i < length; i++) {
+			furtherBuilder[i] = (byte) 0b11111111;
+		}
+		byte[] further = Util.xor(objective, furtherBuilder);
+		
+		while (addedThisRound && added < limit) {
+			addedThisRound = false;
+			
+			byte[] nearest = further;
+			PeerData chosenPeer = null;
+			for (PeerData[] peerList: table) {
+				if (peerList == null) {
+					continue;
+				}
+
+				for (PeerData peer: peerList) {
+					if (peer == null) {
+						continue;
+					}
+					
+					// Objective is over peer.id so it's not relevant
+					if (compareDistances(objective, peer.id) >= 0) {
+						continue;
+					}
+
+					/*Util.prettyPrintByte(peer.id);
+					Util.prettyPrintByte(nearest);
+					Util.prettyPrintByte(objective);
+					System.out.println(compareClosest(peer.id, nearest, objective));*/
+					if (compareClosest(peer.id, nearest, objective) <= 0 && nodes.indexOf(peer) == -1) {
+						chosenPeer = peer;
+						nearest = peer.id;
+					}
+				}
+			}
+			
+			if (chosenPeer != null && nodes.indexOf(chosenPeer) == -1) {
+				nodes.add(chosenPeer);
+				added++;
+				addedThisRound = true;
+			}
+		}
+		
+		return nodes;
+	}
+	
+	protected LinkedList<PeerData> getLowerClosestNodes(byte[] objective, int limit) {
+		LinkedList<PeerData> nodes = new LinkedList<>();
+		int added = 0;
+		// This flag will be false if no more nodes are available (We didn't reach ALFA)
+		boolean addedThisRound = true;
+		
+		byte[] furtherBuilder = new byte[objective.length];
+		for (int i=0, length = objective.length; i < length; i++) {
+			furtherBuilder[i] = (byte) 0b11111111;
+		}
+		byte[] further = Util.xor(objective, furtherBuilder);
+		
+		while (addedThisRound && added < limit) {
+			addedThisRound = false;
+			
+			byte[] nearest = further;
+			PeerData chosenPeer = null;
+			for (PeerData[] peerList: table) {
+				if (peerList == null) {
+					continue;
+				}
+
+				for (PeerData peer: peerList) {
+					if (peer == null) {
+						continue;
+					}
+					
+					// Objective is under peer.id so it's not relevant
+					if (compareDistances(objective, peer.id) <= 0) {
 						continue;
 					}
 
@@ -326,8 +437,8 @@ public class Encaminador {
 		// We don't have PeerData locally. We've to ask other members
 		LinkedList<PeerData> peers = getClosestNodes(id, Encaminador.ALFA);
 		LinkedList<PeerData> newPeers = getClosestNodes(id, Encaminador.ALFA);
-		System.out.println("ASKING");
-		System.out.println("INIT: " + peers);
+		/*System.out.println("ASKING");
+		System.out.println("INIT: " + peers);*/
 		for (PeerData peer: peers) {
 			System.out.println("http://"
 							+ peer.ip
@@ -399,6 +510,128 @@ public class Encaminador {
 		// Peer non-existent
 		return null;
 	}
+
+	public PeerData getUpperPeer(byte[] id, long time) {
+		LinkedList<PeerData> peers = getUpperClosestNodes(id, Encaminador.ALFA);
+		LinkedList<PeerData> newPeers = getUpperClosestNodes(id, Encaminador.ALFA);
+		/*System.out.println("ASKING");
+		System.out.println("INIT: " + peers);*/
+		for (PeerData peer: peers) {
+			JSONArray array = new JSONArray(
+					Util.request("http://"
+							+ peer.ip
+							+ ":"
+							+ peer.port
+							+ "/P2P/checkUpperPeer?toPeer="
+							+ peer.numPeer + "&id="
+							+ Util.byteToString(id)
+							+ "&time="
+							+ time)
+					);
+			for (int i=0, length = array.length(); i < length; i++) {
+				newPeers.add(new PeerData(array.getJSONObject(i)));
+			}
+		}
+		peers = getClosestNodes(id, Encaminador.K, newPeers);
+		
+		int tries = 1;
+		while(tries < Encaminador.NUM_BITS*2) {
+			//System.out.println(peers);
+			time = System.currentTimeMillis();
+			for (PeerData peer: peers) {
+				// I don't ask myself
+				if (Arrays.equals(this.id, peer.id)) {
+					continue;
+				}
+				
+				JSONArray array = new JSONArray(
+						Util.request("http://" 
+								+ peer.ip
+								+ ":"
+								+ peer.port
+								+ "/P2P/checkUpperPeer?toPeer="
+								+ peer.numPeer
+								+ "&id="
+								+ Util.byteToString(id)
+								+ "&time="
+								+ time)
+						);
+				for (int i=0, length = array.length(); i < length; i++) {
+					newPeers.add(new PeerData(array.getJSONObject(i)));
+				}
+			}
+			
+			tries++;
+			
+			if (!isNewListBetter(peers, newPeers, id)) {
+				break;
+			}
+			peers = getClosestNodes(id, Encaminador.K, newPeers);
+		}
+		
+		return getClosestNodes(id, 1, newPeers).size() > 0 ? getClosestNodes(id, 1, newPeers).get(0) : null;
+	}
+
+	public PeerData getLowerPeer(byte[] id, long time) {		
+		LinkedList<PeerData> peers = getLowerClosestNodes(id, Encaminador.ALFA);
+		LinkedList<PeerData> newPeers = getLowerClosestNodes(id, Encaminador.ALFA);
+		/*System.out.println("ASKING");
+		System.out.println("INIT: " + peers);*/
+		for (PeerData peer: peers) {
+			JSONArray array = new JSONArray(
+					Util.request("http://"
+							+ peer.ip
+							+ ":"
+							+ peer.port
+							+ "/P2P/checkLowerPeer?toPeer="
+							+ peer.numPeer + "&id="
+							+ Util.byteToString(id)
+							+ "&time="
+							+ time)
+					);
+			for (int i=0, length = array.length(); i < length; i++) {
+				newPeers.add(new PeerData(array.getJSONObject(i)));
+			}
+		}
+		peers = getClosestNodes(id, Encaminador.K, newPeers);
+		
+		int tries = 1;
+		while(tries < Encaminador.NUM_BITS*2) {
+			//System.out.println(peers);
+			time = System.currentTimeMillis();
+			for (PeerData peer: peers) {
+				// I don't ask myself
+				if (Arrays.equals(this.id, peer.id)) {
+					continue;
+				}
+				
+				JSONArray array = new JSONArray(
+						Util.request("http://" 
+								+ peer.ip
+								+ ":"
+								+ peer.port
+								+ "/P2P/checkLowerPeer?toPeer="
+								+ peer.numPeer
+								+ "&id="
+								+ Util.byteToString(id)
+								+ "&time="
+								+ time)
+						);
+				for (int i=0, length = array.length(); i < length; i++) {
+					newPeers.add(new PeerData(array.getJSONObject(i)));
+				}
+			}
+			
+			tries++;
+			
+			if (!isNewListBetter(peers, newPeers, id)) {
+				break;
+			}
+			peers = getClosestNodes(id, Encaminador.K, newPeers);
+		}
+		
+		return getClosestNodes(id, 1, newPeers).size() > 0 ? getClosestNodes(id, 1, newPeers).get(0) : null;
+	}
 	
 	public LinkedList<PeerData> checkPeer(byte[] id, long time) {
 		if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
@@ -409,26 +642,31 @@ public class Encaminador {
 		return getClosestNodes(id, Encaminador.K);
 	}
 	
+	public LinkedList<PeerData> checkUpperPeer(byte[] id, long time) {
+		if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
+			return new LinkedList<PeerData>();
+		}
+		receivedRequests.add(Util.byteToString(id) + time);
+		
+		return getUpperClosestNodes(id, Encaminador.K);
+	}
+	
+	public LinkedList<PeerData> checkLowerPeer(byte[] id, long time) {
+		if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
+			return new LinkedList<PeerData>();
+		}
+		receivedRequests.add(Util.byteToString(id) + time);
+		
+		return getLowerClosestNodes(id, Encaminador.K);
+	}
+	
 	public PeerData[] getNeightboursFromID(byte[] id) {
 		PeerData[] peerData = new PeerData[2];
-		byte[] max = Util.getMaxByte(Encaminador.NUM_BITS*2 / 8);
-		byte[] min = Util.getMinByte(Encaminador.NUM_BITS*2 / 8);
-		PeerData upper = null;
-		PeerData lower = null;
-		byte[] newId = null;
+		PeerData upper = getUpperPeer(id, System.currentTimeMillis());
+		PeerData lower = getLowerPeer(id, System.currentTimeMillis());
 		
-		// TODO Alternative to Bruteforce SHA-1
-		
-		/*do {
-			newId = Util.addToByte(id);
-			peerData[0] = upper;
-		} while((upper = getPeer(newId, System.currentTimeMillis())) == null && !Arrays.equals(newId, max));
-		
-		do {
-			newId = Util.removeToByte(id);
-			peerData[1] = lower;
-		} while((lower = getPeer(newId, System.currentTimeMillis())) == null && !Arrays.equals(newId, min));*/
-		
+		peerData[0] = upper;
+		peerData[1] = lower;
 		return peerData;
 	}
 
