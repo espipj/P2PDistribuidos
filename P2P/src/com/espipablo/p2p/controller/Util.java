@@ -133,9 +133,9 @@ public class Util {
 		return new String(b, StandardCharsets.UTF_8);
 	}
 	
-	public static void prettyPrintByte(byte[] byteArr) {
+	public static String getPrettyPrintString(byte[] byteArr) {
 		if (byteArr == null) {
-			return;
+			return "";
 		}
 		
 		StringBuilder sb = new StringBuilder();
@@ -143,7 +143,14 @@ public class Util {
 		for (Byte b: byteArr) {
 			sb.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
 		}
-		System.out.println(sb.toString()); // 10000001
+		return sb.toString(); // 10000001
+	}
+	
+	public static void prettyPrintByte(byte[] byteArr) {
+		if (byteArr == null) {
+			return;
+		}
+		System.out.println(Util.getPrettyPrintString(byteArr)); // 10000001
 	}
 	
 	public static byte[] addToByte(byte[] byteArr) {
