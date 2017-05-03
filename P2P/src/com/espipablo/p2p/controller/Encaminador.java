@@ -70,7 +70,8 @@ public class Encaminador {
 		this.receivedRequests = new LinkedList<>();
 	}
 	
-	public boolean validateID(String ip, String port, int toPeer) {
+	// We only validate one id at the same time
+	public synchronized boolean validateID(String ip, String port, int toPeer) {
 		JSONObject jsonObj = new JSONObject(
 				Util.request("http://" + ip + ":" + port + "/P2P/validateId?id="
 				+ new String(this.id, StandardCharsets.UTF_8)
@@ -711,37 +712,45 @@ public class Encaminador {
 	}
 	
 	public LinkedList<PeerData> checkPeer(byte[] id, long time) {
-		if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
-			return new LinkedList<PeerData>();
+		synchronized(receivedRequests) {
+			if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
+				return new LinkedList<PeerData>();
+			}
+			receivedRequests.add(Util.byteToString(id) + time);
 		}
-		receivedRequests.add(Util.byteToString(id) + time);
 		
 		return getClosestNodes(id, Encaminador.K);
 	}
 	
 	public LinkedList<PeerData> checkUpperPeer(byte[] id, long time) {
-		if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
-			return new LinkedList<PeerData>();
+		synchronized(receivedRequests) {
+			if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
+				return new LinkedList<PeerData>();
+			}
+			receivedRequests.add(Util.byteToString(id) + time);
 		}
-		receivedRequests.add(Util.byteToString(id) + time);
 		
 		return getUpperClosestNodes(id, Encaminador.K);
 	}
 	
 	public LinkedList<PeerData> checkLowerPeer(byte[] id, long time) {
-		if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
-			return new LinkedList<PeerData>();
+		synchronized(receivedRequests) {
+			if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
+				return new LinkedList<PeerData>();
+			}
+			receivedRequests.add(Util.byteToString(id) + time);
 		}
-		receivedRequests.add(Util.byteToString(id) + time);
 		
 		return getLowerClosestNodes(id, Encaminador.K);
 	}
 	
 	public LinkedList<PeerData> checkClosestPeer(byte[] id, long time) {
-		if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
-			return new LinkedList<PeerData>();
+		synchronized(receivedRequests) {
+			if (receivedRequests.indexOf(Util.byteToString(id) + time) != -1) {
+				return new LinkedList<PeerData>();
+			}
+			receivedRequests.add(Util.byteToString(id) + time);
 		}
-		receivedRequests.add(Util.byteToString(id) + time);
 		
 		return getClosestNodes(id, Encaminador.K);
 	}

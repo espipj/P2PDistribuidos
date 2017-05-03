@@ -78,10 +78,18 @@ public class Peer {
 							+ "&notInit="
 							+ true)
 					);
+		} else if (file == null) {
+			JSONObject fileObj = new JSONObject();
+			fileObj.put("key", 0);
+			fileObj.put("file", 0);
+			fileObj.put("from", Util.byteToString(this.id));
+			fileObj.put("error", true);
+			return fileObj;
 		} else {
 			JSONObject fileObj = new JSONObject();
 			fileObj.put("key", key);
 			fileObj.put("file", file);
+			fileObj.put("from", Util.byteToString(this.id));
 			fileObj.put("error", false);
 			return fileObj;
 		}
