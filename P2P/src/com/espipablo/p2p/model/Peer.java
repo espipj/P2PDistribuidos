@@ -60,11 +60,31 @@ public class Peer {
 		return filesArr;
 	}
 	
-	public JSONObject getFile(String key) {
-		JSONObject fileObj = new JSONObject();
-		fileObj.put("key", key);
-		fileObj.put("file", files.get(key));
-		return fileObj;
+	public JSONObject getFile(String fileName, boolean notInit) {
+		String key = Util.sha1(fileName);
+		String file = files.get(key);
+		
+		if (file == null && !notInit) {
+			PeerData peer = this.encaminador.getClosestPeer(key.getBytes(), System.currentTimeMillis());
+			System.out.println("Key must be at peer: " + peer.numPeer);
+			return new JSONObject(Util.request("http://"
+							+ peer.ip
+							+ ":"
+							+ peer.port
+							+ "/P2P/get?toPeer="
+							+ peer.numPeer
+							+ "&file="
+							+ fileName
+							+ "&notInit="
+							+ true)
+					);
+		} else {
+			JSONObject fileObj = new JSONObject();
+			fileObj.put("key", key);
+			fileObj.put("file", file);
+			fileObj.put("error", false);
+			return fileObj;
+		}
 	}
 	
 	public void fillFilesTable() {

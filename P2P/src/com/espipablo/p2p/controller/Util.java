@@ -222,4 +222,54 @@ public class Util {
 		return minBuilder;
 	}
 	
+	public static byte[] negate(byte[] b) {
+		byte[] further = Util.getMaxByte(b.length);
+		return Util.xor(b, further);
+	}
+	
+	// http://stackoverflow.com/questions/43376533/byte-array-subtraction
+	public static byte[] add(byte[] data1, byte[] data2) {
+		byte[] result = new byte[data1.length];
+		for (int i = data1.length - 1, overflow = 0; i >= 0; i--) {
+			int v = (data1[i] & 0xff) + (data2[i] & 0xff) + overflow;
+			result[i] = (byte) v;
+			overflow = v >>> 8;
+		}
+		return result;
+	}
+	
+	// http://stackoverflow.com/questions/43376533/byte-array-subtraction
+	public static byte[] substract(byte[] data1, byte[] data2) {
+		data2 = Util.negate(data2);
+		byte[] result = new byte[data1.length];
+		for (int i = data1.length - 1, overflow = 0; i >= 0; i--) {
+			int v = (data1[i] & 0xff) + (data2[i] & 0xff) + overflow;
+			result[i] = (byte) v;
+			overflow = v >>> 8;
+		}
+		return result;
+	}
+	
+	public static byte[] getFurther(byte[] data1) {
+		byte[] difMinByte = Util.substract(data1, Util.getMinByte(data1.length));
+		byte[] difMaxByte = Util.substract(Util.getMaxByte(data1.length), data1);
+		if (Util.compareDistances(difMinByte, difMaxByte) < 0) {
+			return difMaxByte;
+		}
+		return difMinByte;
+	}
+
+	public static int compareDistances(byte[] id1, byte [] id2) {		
+		for (int i=0, length = id1.length * 8; i < length; i++) {
+			if (Util.getBit(id1, i) != Util.getBit(id2, i)) {
+				if (Util.getBit(id1, i) == 0) {
+					return -1;
+				}
+				return 1;
+			}
+		}
+		
+		return 0;
+	}
+	
 }

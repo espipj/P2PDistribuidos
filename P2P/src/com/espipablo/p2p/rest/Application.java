@@ -151,6 +151,26 @@ public class Application {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/checkClosestPeer")
+	public String checkClosestPeer(
+			@QueryParam(value="id") String id,
+			@QueryParam(value="time") long time,
+			@QueryParam(value="toPeer") int toPeer) {
+		
+		if (toPeer >= TOTAL_PEERS) {
+			return "ERROR TOPEER OUT OF BOUNDS";
+		}
+
+		LinkedList<PeerData> peers = this.peers[toPeer].getEncaminador().checkClosestPeer(id.getBytes(), time);
+		JSONArray peersArr = new JSONArray();
+		for (PeerData peer: peers) {
+			peersArr.put(peer.getAsJSON());
+		}
+		return peersArr.toString();
+	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/getPeer")
 	// http://localhost:8080/P2P/getPeer?id=5057939219e015ad7022959c4a571680400585a8&toPeer=0
 	public String getPeer(
@@ -228,7 +248,7 @@ public class Application {
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/put")
 	// http://localhost:8080/P2P/put?file=file1.txt&toPeer=0
-	public String setLower(
+	public String putFile(
 			@QueryParam(value="file") String file,
 			@QueryParam(value="toPeer") int toPeer) {
 		
@@ -241,6 +261,24 @@ public class Application {
 		System.out.println(this.peers[1].getFilesTableAsJSON().toString());
 		System.out.println(this.peers[2].getFilesTableAsJSON().toString());
 		return "DONE";
+	}
+
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/get")
+	// http://localhost:8080/P2P/get?file=file1.txt&toPeer=0
+	public String getFile(
+			@QueryParam(value="file") String file,
+			@QueryParam(value="toPeer") int toPeer,
+			@QueryParam(value="notInit") boolean notInit) {
+		
+		if (toPeer >= TOTAL_PEERS) {
+			return "ERROR TOPEER OUT OF BOUNDS";
+		}
+		
+		JSONObject obj = this.peers[toPeer].getFile(file, notInit);
+		return obj.toString();
 	}
 
 }
