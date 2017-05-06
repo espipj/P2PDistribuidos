@@ -87,7 +87,7 @@ public class Peer {
 		} else {
 			JSONObject fileObj = new JSONObject();
 			fileObj.put("key", key);
-			fileObj.put("file", file);
+			fileObj.put("file", "http://" + this.ip + ":" + this.port + "/files/" + file);
 			fileObj.put("from", Util.getPrettyPrintString(this.id));
 			fileObj.put("error", false);
 			return fileObj;
