@@ -29,8 +29,8 @@ public class Peer {
 		this.upper = new PeerData();
 		this.lower = new PeerData();
 		
-		this.ip = ip;
-		this.port = port;
+		this.ip = myIp;
+		this.port = myPort;
 		this.numPeer = numPeer;
 		
 		this.fillFilesTable();
