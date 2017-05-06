@@ -65,7 +65,7 @@ public class Peer {
 		
 		if (file == null && !notInit) {
 			PeerData peer = this.encaminador.getClosestPeer(key.getBytes(), System.currentTimeMillis());
-			System.out.println("Key must be at peer: " + peer.numPeer);
+			System.out.println("Key must be at peer: " + Util.byteToString(peer.id) + "|| " + peer.ip + ":" + peer.port + "/?=" + peer.numPeer);
 			return new JSONObject(Util.request("http://"
 							+ peer.ip
 							+ ":"
@@ -137,7 +137,7 @@ public class Peer {
 			this.upper.port = port;
 			this.upper.numPeer = numPeer;
 		}
-		System.out.println(this.numPeer + "Upper saved: " + numPeer);
+		System.out.println(this.numPeer + "Upper saved: " + id + "|| " + ip + ":" + port + "/?=" + numPeer);
 	}
 	
 	public void setUpper(String id, String ip, String port, int numPeer, boolean callback) {
@@ -189,7 +189,7 @@ public class Peer {
 			this.lower.ip = ip;
 			this.lower.port = port;
 			this.lower.numPeer = numPeer;
-			System.out.println(this.numPeer + "Lower saved: " + numPeer);
+			System.out.println(this.numPeer + "Lower saved: " + id + "|| " + ip + ":" + port + "/?=" + numPeer);
 		}
 	}
 	
@@ -268,7 +268,7 @@ public class Peer {
 			this.files.put(key, file);
 		} else {
 			// We don't care about the result, file is being put by another node
-			System.out.println("I'm: " + this.numPeer + " asking: " + closest.numPeer);
+			System.out.println("I'm: " + this.numPeer + " asking: " + Util.byteToString(closest.id) + "|| " + closest.ip + ":" + closest.port + "/?=" + closest.numPeer);
 			Util.request("http://" 
 					+ closest.ip
 					+ ":"
