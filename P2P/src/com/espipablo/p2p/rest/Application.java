@@ -14,7 +14,7 @@ import javax.ws.rs.core.MediaType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.espipablo.p2p.model.Peer;
+import com.espipablo.p2p.controller.Peer;
 import com.espipablo.p2p.model.PeerData;
 
 @Path("/")
