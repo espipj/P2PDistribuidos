@@ -2,9 +2,9 @@
 
 # ./sshStart i0901995 172.20.2.111 172.20.2.14 172.20.2.15
 
-projectDir="/home/$1/Z/Distribuidos/P2PDistribuidos/"
+projectDir="/home/$1/Z/Distribuidos/PractOpcional/"
 
-warDir="P2P/P2P.war"
+warDir="P2P/P2P/Distribuidos.war"
 tomcatDir="tomcat"
 tomcat=$projectDir$tomcatDir
 
