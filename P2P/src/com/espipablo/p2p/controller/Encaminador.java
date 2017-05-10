@@ -6,6 +6,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.LinkedList;
 
 import javax.validation.constraints.NotNull;
@@ -47,14 +48,34 @@ public class Encaminador {
 			this.validated = true;
 		}
 		
-		NetworkInterface network = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
+		/*NetworkInterface network = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
 		String macAddress;
 		StringBuilder sb = new StringBuilder();
 		byte[] mac = network.getHardwareAddress();
 		for (byte b: mac) {
 			sb.append(String.format("%02X", b));
-		}
-		macAddress = Util.sha1(sb.toString());
+		}*/
+		// http://stackoverflow.com/questions/6595479/java-getting-mac-address-of-linux-system
+        StringBuilder sb = new StringBuilder();
+		Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+        while(networkInterfaces.hasMoreElements())
+        {
+            NetworkInterface network = networkInterfaces.nextElement();
+            System.out.println("network : " + network);
+            byte[] mac = network.getHardwareAddress();
+            if(mac != null)
+            {
+                System.out.print("MAC address : ");
+
+                for (int i = 0; i < mac.length; i++)
+                {
+                    sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? ":" : ""));        
+                }
+                System.out.println(sb.toString());
+                break;
+            }
+        }
+		String macAddress = Util.sha1(sb.toString());
 		this.id = macAddress.getBytes();
 		
 		int i = 0;
