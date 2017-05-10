@@ -22,24 +22,35 @@ ssh $1@$4 "mkdir -p /home/$1/tomcat && cp -a $tomcat/. /home/$1/tomcat/ && JRE_H
 # We launch our P2P network
 
 echo -e "InicializaciOn de la red P2P...\n"
+echo -e "###################################################\n"
 sleep 1
 curl -v http://localhost:8080/P2P/inicializar?ip=$2\&port=8080
 curl -v http://$3:8080/P2P/inicializar?ip=$3\&port=8080
 curl -v http://$4:8080/P2P/inicializar?ip=$4\&port=8080
 
+echo -e "###################################################\n"
 echo -e "MAquinas Inicializadas correctamente!\n"
 echo -e "Inicializando equipos P2P...\n"
+echo -e "###################################################\n"
 
-curl http://localhost:8080/P2P/Peer?port=8080\&numPeer=0
-curl http://localhost:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
-curl http://localhost:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
+curl -v http://localhost:8080/P2P/Peer?port=8080\&numPeer=0
+sleep 1
+curl -v http://localhost:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
+sleep 1
+curl -v http://localhost:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
+sleep 1
+curl -v http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=0
+sleep 1
+curl -v http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
+sleep 1
+curl -v http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
+sleep 1
 
-curl http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=0
-curl http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
-curl http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
-
-curl http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=0
-curl http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
-curl http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
+curl -v http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=0
+sleep 1
+curl -v http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
+sleep 1
+curl -v http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
+sleep 1
 
 echo -e "Equipos P2P Inicializados\n"
