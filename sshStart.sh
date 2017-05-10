@@ -33,24 +33,25 @@ echo -e "MAquinas Inicializadas correctamente!\n"
 echo -e "Inicializando equipos P2P...\n"
 echo -e "###################################################\n"
 
-curl -v http://localhost:8080/P2P/Peer?port=8080\&numPeer=0
+curl http://localhost:8080/P2P/Peer?port=8080\&numPeer=0
 sleep 1
-curl -v http://localhost:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
+curl http://localhost:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
 sleep 1
-curl -v http://localhost:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
-sleep 1
-curl -v http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=0
-sleep 1
-curl -v http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
-sleep 1
-curl -v http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
+curl http://localhost:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
 sleep 1
 
-curl -v http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=0
+curl http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=0
 sleep 1
-curl -v http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
+curl http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
 sleep 1
-curl -v http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
+curl http://$3:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
+sleep 1
+
+curl http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=0
+sleep 1
+curl http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=1
+sleep 1
+curl http://$4:8080/P2P/Peer?ip=$2\&port=8080\&toPeer=0\&numPeer=2
 sleep 1
 
 echo -e "Equipos P2P Inicializados\n"
