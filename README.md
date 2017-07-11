@@ -1,3 +1,5 @@
 P2P Implementation of Kademlia
 
-Distribuidos
+Developed by:
+  + Pablo Jimenez
+  + Pablo Espinosa
